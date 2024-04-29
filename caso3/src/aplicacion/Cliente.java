@@ -1,4 +1,4 @@
-package project_Caso2;
+package aplicacion;
 
 public class Cliente {
 
