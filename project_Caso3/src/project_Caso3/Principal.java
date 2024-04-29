@@ -1,6 +1,6 @@
 package project_Caso2;
 
-public class principal {
+public class Principal {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
