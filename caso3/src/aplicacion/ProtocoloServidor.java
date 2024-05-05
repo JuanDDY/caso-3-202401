@@ -172,9 +172,24 @@ public class ProtocoloServidor {
 
 		//Paso 12
 		escribirAlCliente.writeUTF("CONTINUAR");
-		
 
-	}
+		// Paso 13 -15
+		String login = leerDelCliente.readUTF();
+		String password = leerDelCliente.readUTF();
+		
+		if(verifyLoginAndPassword(login,password)){ 
+			escribirAlCliente.writeUTF("OK"); 
+			
+			// Paso 17 -18
+			String consulta = leerDelCliente.readUTF(); 
+			byte[] hmacConsulta = generarHMAC(consulta.getBytes());
+			escribirAlCliente.writeBytes(Base64.getEncoder().encodeToString(hmacConsulta));
+			
+		} else {
+			escribirAlCliente.writeUTF("ERROR");
+		}
+	}		
+		
 	
 	
 	
@@ -243,6 +258,10 @@ public class ProtocoloServidor {
 		this.llavePublicaServer = keyFactory2.generatePublic(new X509EncodedKeySpec(bytesLlavePublica));	
         
 	}
+	private boolean verifyLoginAndPassword(String login,String password){
+		//TODO: Implementa tu lógica aquí para verificar el login y la contraseña del usuario 
+		return true; // Placeholder: reemplaza con la implementación real
+	 }
 
 	
 	public void leerArchivoNumeroPrimo() {

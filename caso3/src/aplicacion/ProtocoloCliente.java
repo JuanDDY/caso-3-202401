@@ -14,6 +14,7 @@ import java.security.Signature;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Arrays;
 import java.util.Base64;
 
 import javax.crypto.Mac;
@@ -175,13 +176,33 @@ public class ProtocoloCliente {
 		if (!fromServer.equals("CONTINUAR")) { 
 			throw new SignatureException("Se deberia haber pasado \"CONTINUAR\""); //El cliente se detiene si el los numero recibidos no son consistentes con la firma 
 		}
-
-
-
-		//Paso 13
-
-
+		if ("CONTINUAR".equals(fromServer)) {
+			// Convertir los bytes cifrados a String para enviar
+			String loginCifrado = Base64.getEncoder().encodeToString(CifradoSimetrico.cifrar(llaveSimetricaParaCifrar, "login", iv));
+			String passwordCifrado = Base64.getEncoder().encodeToString(CifradoSimetrico.cifrar(llaveSimetricaParaCifrar, "password", iv));
+			
+			outServer.writeUTF(loginCifrado); // Enviar login cifrado
+			outServer.writeUTF(passwordCifrado); // Enviar contraseña cifrada
+			
+			// Recibir verificación de login y contraseña
+			String verificationResult = inServer.readUTF();
+			if ("OK".equals(verificationResult)) {
+				// Convertir los bytes cifrados a String para enviar
+				String consultaCifrada = Base64.getEncoder().encodeToString(CifradoSimetrico.cifrar(llaveSimetricaParaCifrar, "consulta", iv));
+				outServer.writeUTF(consultaCifrada); // Enviar consulta cifrada
+				
+				// Recibir HMAC de consulta y verificar
+				String hmacConsulta = inServer.readUTF();
+				byte[] hmacConsultaBytes = Base64.getDecoder().decode(hmacConsulta);
+				if (Arrays.equals(generarHMAC("consulta".getBytes()), hmacConsultaBytes)) {
+					// Continuar con la comunicación
+				} else {
+					// Terminar la conexión
+				}
+			}
+		}
 	}
+		
 	
 	
 
