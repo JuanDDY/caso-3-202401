@@ -186,7 +186,7 @@ public class ProtocoloServidor {
 	}
 	
 
-	public static byte[] generarHMAC (byte[] textoBytes) throws InvalidKeyException, NoSuchAlgorithmException {
+	public byte[] generarHMAC (byte[] textoBytes) throws InvalidKeyException, NoSuchAlgorithmException {
 		
 		Mac hMac = Mac.getInstance("HmacSHA256");
 		hMac.init(this.llaveSimetricaParaHMAC);
@@ -195,7 +195,7 @@ public class ProtocoloServidor {
 	}
 
 
-	public static SecretKey generarLlaveSecreta(byte[] listaBytes) {
+	public SecretKey generarLlaveSecreta(byte[] listaBytes) {
 
 		SecretKey llaveSecreta = new SecretKeySpec(listaBytes, 0, listaBytes.length, "AES");
 		return llaveSecreta;

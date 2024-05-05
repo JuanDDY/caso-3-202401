@@ -45,7 +45,7 @@ public class Servidor extends Thread{
             InstanciaDeRespuesta tNuevoCliente = new InstanciaDeRespuesta(i, nuevoCliente);
             i = i+1;
             tNuevoCliente.start();
-            Servidor.bandera = false;
+            
         }
 		
 		serverSocket.close();

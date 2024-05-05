@@ -185,21 +185,21 @@ public class ProtocoloCliente {
 	
 	
 
-	public static SecretKey generarLlaveSecreta(byte[] listaBytes) {
+	public SecretKey generarLlaveSecreta(byte[] listaBytes) {
 
 		SecretKey llaveSecreta = new SecretKeySpec(listaBytes, 0, listaBytes.length, "AES");
 		return llaveSecreta;
 	}
 
 
-	public static byte[] generarHMAC (byte[] textoBytes) throws InvalidKeyException, NoSuchAlgorithmException {
+	public byte[] generarHMAC (byte[] textoBytes) throws InvalidKeyException, NoSuchAlgorithmException {
 		
 		Mac hMac = Mac.getInstance("HmacSHA256");
 		hMac.init(this.llaveSimetricaParaHMAC);
 		byte[] hmacBytes = hMac.doFinal(textoBytes);
 		return hmacBytes;
 	}
-	
+
 
 	public boolean verificarFirmaDiffie (String aVerificar, String certificado) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException {	
 		byte[] listaBytes = Base64.getDecoder().decode(aVerificar);
