@@ -192,13 +192,14 @@ public class ProtocoloCliente {
 	}
 
 
-	public static byte[] generarHMAC (SecretKey key, byte[] textoBytes) throws InvalidKeyException, NoSuchAlgorithmException {
+	public static byte[] generarHMAC (byte[] textoBytes) throws InvalidKeyException, NoSuchAlgorithmException {
 		
 		Mac hMac = Mac.getInstance("HmacSHA256");
-		hMac.init(key);
+		hMac.init(this.llaveSimetricaParaHMAC);
 		byte[] hmacBytes = hMac.doFinal(textoBytes);
 		return hmacBytes;
 	}
+	
 
 	public boolean verificarFirmaDiffie (String aVerificar, String certificado) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException {	
 		byte[] listaBytes = Base64.getDecoder().decode(aVerificar);
