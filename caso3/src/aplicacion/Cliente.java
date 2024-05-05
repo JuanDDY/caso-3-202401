@@ -1,60 +1,53 @@
 package aplicacion;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.math.BigInteger;
 import java.net.Socket;
-import java.security.PublicKey;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
+import java.security.spec.InvalidKeySpecException;
 
-public class Cliente extends Thread{
 
-	String nombreArchivo;
-	BigInteger P;
+public class Cliente {
+
 	
-	BigInteger G;
-	int g;
+	public static final int numeroPuerto = 1234;
+	public static final String servidor = "localhost";
 	
-	int numeroPuerto;
 	
-	PublicKey llavepublicaServer;
 	
-	Cliente (int numeroPuertoP,String nombreArchivoP, PublicKey llavepublicaServerP){
+	public static void main (String args[]) throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, SignatureException, InvalidKeyException {
 		
-		this.numeroPuerto = numeroPuertoP;
-		this.nombreArchivo = nombreArchivoP;
-		this.llavepublicaServer = llavepublicaServerP; 
+		Socket socket = null;
+		DataOutputStream outServer = null;
+		DataInputStream inServer = null;
 		
-	}
-	
-	
-	@Override
-	public void run() {
-		
-		Socket socket;
-		
-		try {
-			socket = new Socket("localhost", this.numeroPuerto); // Conectar al servidor en el puerto 1234
+		System.out.println("Cliente iniciado ...");
 			
-			PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-	        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-	        // Enviar una consulta al servidor
-	        out.println("Consulta del cliente");
-
-	        // Leer la respuesta del servidor
-	        String response = in.readLine();
-	        System.out.println("Servidor dice: " + response);
-
-	        socket.close(); // Cerrar la conexión con el servidor
-	        
+		try {
+			socket = new Socket(Cliente.servidor, Cliente.numeroPuerto); // Conectar al servidor en el puerto 1234
+			
+			outServer = new DataOutputStream(socket.getOutputStream());
+	        inServer = new DataInputStream(socket.getInputStream());       
+	       	        	        
 		} catch (IOException e) {
 			e.printStackTrace();
 		} 
+						
+		DataInputStream inConsola = new DataInputStream(System.in);       
+    
+        ProtocoloCliente protocoloCliente = new ProtocoloCliente(inConsola, inServer, outServer);
+        protocoloCliente.procesar();
+        
+        // Cerrar todos los BufferedReaders y PrintReader
+        inConsola.close();
+        inServer.close();
+        outServer.close();
+        socket.close(); 		// Cerrar la conexión con el servidor
 		
-	}
+	}	
 
 	
 
