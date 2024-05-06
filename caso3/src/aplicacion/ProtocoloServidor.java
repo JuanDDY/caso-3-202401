@@ -186,6 +186,8 @@ public class ProtocoloServidor {
 		//Paso 15
 		if(verifyLoginAndPassword(login,password)){ 
 			escribirAlCliente.writeUTF("OK"); 
+
+			System.out.println("el cliente se verifico correctamente");
 			
 			// Paso 17 -18
 			String consulta = leerDelCliente.readUTF(); 
@@ -282,16 +284,15 @@ public class ProtocoloServidor {
 	}
 	private boolean verifyLoginAndPassword(String login, String password) {
 
-		byte[] loginDescifrado = CifradoSimetrico.descifrar(llaveSimetricaParaCifrar, login.getBytes(), this.iv);
-		byte[] passwordDescifrado = CifradoSimetrico.descifrar(llaveSimetricaParaCifrar, password.getBytes(), this.iv);
+		byte[] loginDescifrado = CifradoSimetrico.descifrar(this.llaveSimetricaParaCifrar, Base64.getDecoder().decode(login), this.iv);
+		byte[] passwordDescifrado = CifradoSimetrico.descifrar(this.llaveSimetricaParaCifrar, Base64.getDecoder().decode(password), this.iv);
 
 		String loginStr = new String(loginDescifrado);
 		String passwordStr =new String(passwordDescifrado);
 
-
 		BufferedReader reader = null;
 		try {
-			reader = new BufferedReader(new FileReader("clientes.txt"));
+			reader = new BufferedReader(new FileReader("caso3/documentos/clientes.txt"));
 			String linea;
 	
 			while ((linea = reader.readLine()) != null) {

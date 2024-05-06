@@ -9,7 +9,7 @@ public class CifradoSimetrico {
 	
 	public static byte[] cifrar(SecretKey llave, String texto, IvParameterSpec iv) {
 		byte[] textoCifrado;
-		
+				
 		try {
 			Cipher cifrador = Cipher.getInstance(PADDING);
 			byte[] textoClaro = texto.getBytes();
@@ -25,7 +25,7 @@ public class CifradoSimetrico {
 	
 	public static byte[] descifrar(SecretKey llave, byte[] texto, IvParameterSpec iv) {
 		byte[] textoClaro;
-		
+
 		try {
 			Cipher cifrador = Cipher.getInstance(PADDING);
 			cifrador.init(Cipher.DECRYPT_MODE, llave, iv);
