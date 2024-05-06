@@ -203,7 +203,7 @@ public class ProtocoloCliente {
 			if ("OK".equals(verificationResult)) {
 				// Leer consulta desde la consola
 				System.out.println("Por favor, ingresa un número para la consulta:");
-				String consulta = inConsola.readLine();
+				String consulta = inConsola.readUTF();
 	   
 				// Cifrar y enviar consulta
 				outServer.writeUTF(Base64.getEncoder().encodeToString(CifradoSimetrico.cifrar(llaveSimetricaParaCifrar, consulta, iv)));
