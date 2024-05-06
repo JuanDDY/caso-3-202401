@@ -6,8 +6,6 @@ import java.io.DataOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.MessageDigest;
@@ -205,7 +203,7 @@ public class ProtocoloServidor {
 				escribirAlCliente.writeUTF("ERROR");
 			}
 		}
-	}		
+		
 		
 	
 	
