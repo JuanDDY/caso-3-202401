@@ -84,6 +84,7 @@ public class ProtocoloCliente {
 	 * @throws SignatureException 
 	 * @throws InvalidKeyException 
 	*/
+	@SuppressWarnings("deprecation")
 	public void procesar () throws InvalidKeySpecException, NoSuchAlgorithmException, IOException, SignatureException, InvalidKeyException{	
 		
 		String fromServer = null;
@@ -128,7 +129,7 @@ public class ProtocoloCliente {
 	
 		String GPGxFirmado = this.inServer.readUTF();	
 		String GPGxCliente =  this.G.toString() + "," + this.P.toString() + "," + this.Gx.toString();  // GPGx = G,P,G^x
-		System.out.println("Se rreciben lso numero primos.");
+		System.out.println("Se reciben los numero primos.");
 		
 
 		//Paso 9
@@ -183,22 +184,21 @@ public class ProtocoloCliente {
 			// Leer login y password ingresado
 			System.out.println("Por favor, ingresa tu login:");
 			String login = reader.readLine();
-
+	 
 			System.out.println("Por favor, ingresa tu contraseña:");
 			String password = reader.readLine();
-	 
+	   
 			// Cifrar y enviar login y password
-			outServer.writeUTF(Base64.getEncoder().encodeToString(CifradoSimetrico.cifrar(llaveSimetricaParaCifrar, login, iv)));
-			outServer.writeUTF(Base64.getEncoder().encodeToString(CifradoSimetrico.cifrar(llaveSimetricaParaCifrar, password, iv)));
+			outServer.writeUTF(Base64.getEncoder().encodeToString(CifradoSimetrico.cifrar2(llaveSimetricaParaCifrar, login)));
+			outServer.writeUTF(Base64.getEncoder().encodeToString(CifradoSimetrico.cifrar2(llaveSimetricaParaCifrar, password)));
 			
 			// Paso 16: Recibir verificación de login y contraseña
 			String verificationResult = inServer.readUTF();
 			if ("OK".equals(verificationResult)) {
 				// Leer consulta desde la consola
 				System.out.println("Por favor, ingresa un número para la consulta:");
-				@SuppressWarnings("deprecation")
 				String consulta = inConsola.readLine();
-	 
+	   
 				// Cifrar y enviar consulta
 				outServer.writeUTF(Base64.getEncoder().encodeToString(CifradoSimetrico.cifrar(llaveSimetricaParaCifrar, consulta, iv)));
 				
@@ -208,11 +208,29 @@ public class ProtocoloCliente {
 				if (Arrays.equals(generarHMAC(consulta.getBytes()), hmacConsultaBytes)) {
 					// Continuar con la comunicación
 				} else {
-					// Terminar la conexión
+					System.exit(0);// Terminar la conexión
+				}
+				
+				// Paso 19 - 21: Recibir rta cifrada y HMAC del servidor
+				String rtaCifrada = inServer.readUTF();
+				String hmacRtaBase64 = inServer.readUTF();
+		
+				// Decodificar rta cifrada y HMAC
+				byte[] rtaCifradaBytes = Base64.getDecoder().decode(rtaCifrada);
+				byte[] hmacRta = Base64.getDecoder().decode(hmacRtaBase64);
+		
+				// Paso 21: Verificar HMAC
+				if (Arrays.equals(generarHMAC(rtaCifradaBytes), hmacRta)) {
+					// Decifrar rta
+					String rta = new String(CifradoSimetrico.descifrar(llaveSimetricaParaCifrar, rtaCifradaBytes, iv));
+					System.out.println("La respuesta del servidor es: " + rta);
+				} else {
+					System.out.println("ERROR: No existe el login");
+					System.exit(0);// Terminar la conexión
 				}
 			}
 		}
-	}
+	 }
 		
 	
 	
