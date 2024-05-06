@@ -212,27 +212,29 @@ public class ProtocoloCliente {
 				String hmacConsulta = inServer.readUTF();
 				byte[] hmacConsultaBytes = Base64.getDecoder().decode(hmacConsulta);
 				if (Arrays.equals(generarHMAC(consulta.getBytes()), hmacConsultaBytes)) {
-					// Continuar con la comunicación
+					// Paso 19 - 21: Recibir rta cifrada y HMAC del servidor
+					String rtaCifrada = inServer.readUTF();
+					String hmacRtaBase64 = inServer.readUTF();
+			
+					// Decodificar rta cifrada y HMAC
+					byte[] rtaCifradaBytes = Base64.getDecoder().decode(rtaCifrada);
+					byte[] hmacRta = Base64.getDecoder().decode(hmacRtaBase64);
+			
+					// Paso 21: Verificar HMAC
+					if (Arrays.equals(generarHMAC(rtaCifradaBytes), hmacRta)) {
+						// Decifrar rta
+						String rta = new String(CifradoSimetrico.descifrar(llaveSimetricaParaCifrar, rtaCifradaBytes, iv));
+						int rtaInt = Integer.parseInt(rta);
+						rtaInt = rtaInt - 1; 
+						System.out.println("La respuesta del servidor es: " + rtaInt);
+					} else {
+						System.out.println("ERROR");
+					}
 				} else {
 					System.exit(0);// Terminar la conexión
 				}
 				
-				// Paso 19 - 21: Recibir rta cifrada y HMAC del servidor
-				String rtaCifrada = inServer.readUTF();
-				String hmacRtaBase64 = inServer.readUTF();
-		
-				// Decodificar rta cifrada y HMAC
-				byte[] rtaCifradaBytes = Base64.getDecoder().decode(rtaCifrada);
-				byte[] hmacRta = Base64.getDecoder().decode(hmacRtaBase64);
-		
-				// Paso 21: Verificar HMAC
-				if (Arrays.equals(generarHMAC(rtaCifradaBytes), hmacRta)) {
-					// Decifrar rta
-					String rta = new String(CifradoSimetrico.descifrar(llaveSimetricaParaCifrar, rtaCifradaBytes, iv));
-					System.out.println("La respuesta del servidor es: " + rta);
-				} else {
-					System.out.println("ERROR");
-				}
+				
 			} else {
 				System.out.println("ERROR: No se pudo verificar el login");
 			}
