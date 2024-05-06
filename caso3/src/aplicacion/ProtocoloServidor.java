@@ -51,6 +51,8 @@ public class ProtocoloServidor {
 	BigInteger Gy;
 	BigInteger z;
 
+	IvParameterSpec iv;
+
 	SecretKey llaveSimetricaParaCifrar;
 	SecretKey llaveSimetricaParaHMAC;
 	
@@ -118,12 +120,14 @@ public class ProtocoloServidor {
 		
 		//Paso 7
 		String GPGx = this.G.toString() + "," + this.P.toString() + "," + this.Gx.toString();  // GPGx = G,P,G^x
-		String iv = Base64.getEncoder().encodeToString(generarIv().getIV());
+		this.iv = generarIv();
+
+		String ivTxt = Base64.getEncoder().encodeToString(this.iv.getIV());
 		
 		escribirAlCliente.writeUTF(this.G.toString());
 		escribirAlCliente.writeUTF(this.P.toString());
 		escribirAlCliente.writeUTF(this.Gx.toString());
-		escribirAlCliente.writeUTF(iv);
+		escribirAlCliente.writeUTF(ivTxt);
 		String conjuntoNumerosFirmados = firmarConLlavePrivadaDiffie(GPGx);
 		escribirAlCliente.writeUTF(conjuntoNumerosFirmados);
 		System.out.println("Se extrajeron P y G. Fueron enviados al Cliente junto con G^x e iv");
@@ -173,9 +177,12 @@ public class ProtocoloServidor {
 		//Paso 12
 		escribirAlCliente.writeUTF("CONTINUAR");
 
+
 		// Paso 13 -14
 		String login = leerDelCliente.readUTF();
 		String password = leerDelCliente.readUTF();
+
+
 		//Paso 15
 		if(verifyLoginAndPassword(login,password)){ 
 			escribirAlCliente.writeUTF("OK"); 
@@ -186,7 +193,7 @@ public class ProtocoloServidor {
 			escribirAlCliente.writeBytes(Base64.getEncoder().encodeToString(hmacConsulta));
 			// Paso 19
 			String rta = consulta; 
-			byte[] ivBytes = Base64.getDecoder().decode(iv); 
+			byte[] ivBytes = Base64.getDecoder().decode(ivTxt); 
 			IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
 
 				String rtaCifrada = Base64.getEncoder().encodeToString(CifradoSimetrico.cifrar(llaveSimetricaParaCifrar, rta, ivSpec));
@@ -274,6 +281,14 @@ public class ProtocoloServidor {
         
 	}
 	private boolean verifyLoginAndPassword(String login, String password) {
+
+		byte[] loginDescifrado = CifradoSimetrico.descifrar(llaveSimetricaParaCifrar, login.getBytes(), this.iv);
+		byte[] passwordDescifrado = CifradoSimetrico.descifrar(llaveSimetricaParaCifrar, password.getBytes(), this.iv);
+
+		String loginStr = new String(loginDescifrado);
+		String passwordStr =new String(passwordDescifrado);
+
+
 		BufferedReader reader = null;
 		try {
 			reader = new BufferedReader(new FileReader("clientes.txt"));
@@ -282,7 +297,7 @@ public class ProtocoloServidor {
 			while ((linea = reader.readLine()) != null) {
 				String[] partes = linea.split(" "); // Dividir la línea en login y password
 	
-				if (partes.length > 1 && partes[0].equals(login) && partes[1].equals(password)) {
+				if (partes.length > 1 && partes[0].equals(loginStr) && partes[1].equals(passwordStr)) {
 					return true; // Devolver true si se encontró el login y la contraseña
 				}
 			}
