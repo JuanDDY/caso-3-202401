@@ -16,6 +16,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Random;
 import java.util.Scanner;
 
 import javax.crypto.Mac;
@@ -202,9 +203,10 @@ public class ProtocoloCliente {
 
 			if ("OK".equals(verificationResult)) {
 				// Leer consulta desde la consola
-				System.out.println("Por favor, ingresa un número para la consulta:");
-				String consulta = inConsola.readLine();
-	   
+				Random rand = new Random();
+				int numeroAleatorio  = rand.nextInt(100) + 1;
+				String consulta = Integer.toString(numeroAleatorio);
+				System.out.println("Número para consultar: " + consulta);
 				// Cifrar y enviar consulta
 				outServer.writeUTF(Base64.getEncoder().encodeToString(CifradoSimetrico.cifrar(llaveSimetricaParaCifrar, consulta, iv)));
 				
