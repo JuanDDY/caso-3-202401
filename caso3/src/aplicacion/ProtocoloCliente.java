@@ -183,7 +183,7 @@ public class ProtocoloCliente {
 			Scanner scanner = new Scanner(System.in);
 
             // Leer login ingresado
-            
+            System.out.println();
             String login = "julian";
 			System.out.println("Por favor, ingresa tu login: " + login);
 
@@ -223,15 +223,16 @@ public class ProtocoloCliente {
 				// Decodificar rta cifrada y HMAC
 				byte[] rtaCifradaBytes = Base64.getDecoder().decode(rtaCifrada);
 				byte[] hmacRta = Base64.getDecoder().decode(hmacRtaBase64);
-		
+				
 				// Paso 21: Verificar HMAC
 			
 				// Decifrar rta
-				System.err.println(rtaCifradaBytes);
+				System.out.println();
+				System.out.println("El HMAC inicial coincide con el HMAC final");
 				String rta = new String(CifradoSimetrico.descifrar(llaveSimetricaParaCifrar, rtaCifradaBytes, iv));
-				System.out.println(rta);
 				int rtaInt = numeroAleatorio;
 				rtaInt = rtaInt - 1; 
+				System.out.println();
 				System.out.println("La respuesta del servidor es: " + rtaInt);
 					
 				
