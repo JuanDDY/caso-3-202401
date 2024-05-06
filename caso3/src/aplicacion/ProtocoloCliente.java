@@ -1,10 +1,8 @@
 package aplicacion;
 
-import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
@@ -18,6 +16,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Scanner;
 
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
@@ -180,20 +179,27 @@ public class ProtocoloCliente {
 			throw new SignatureException("Se deberia haber pasado \"CONTINUAR\""); //El cliente se detiene si el los numero recibidos no son consistentes con la firma 
 		}
 		if ("CONTINUAR".equals(fromServer)) {
-			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-			// Leer login y password ingresado
-			System.out.println("Por favor, ingresa tu login:");
-			String login = reader.readLine();
-	 
-			System.out.println("Por favor, ingresa tu contraseña:");
-			String password = reader.readLine();
+			
+			Scanner scanner = new Scanner(System.in);
+
+            // Leer login ingresado
+            System.out.println("Por favor, ingresa tu login:");
+            String login = scanner.nextLine();
+
+            // Leer contraseña ingresada
+            System.out.println("Por favor, ingresa tu contraseña:");
+            String password = scanner.nextLine();
+
+            // Cerrar el Scanner cuando ya no lo necesites
+            scanner.close();
 	   
 			// Cifrar y enviar login y password
-			outServer.writeUTF(Base64.getEncoder().encodeToString(CifradoSimetrico.cifrar2(llaveSimetricaParaCifrar, login)));
-			outServer.writeUTF(Base64.getEncoder().encodeToString(CifradoSimetrico.cifrar2(llaveSimetricaParaCifrar, password)));
+			outServer.writeUTF(Base64.getEncoder().encodeToString(CifradoSimetrico.cifrar(llaveSimetricaParaCifrar, login, iv)));
+			outServer.writeUTF(Base64.getEncoder().encodeToString(CifradoSimetrico.cifrar(llaveSimetricaParaCifrar, password, iv)));
 			
 			// Paso 16: Recibir verificación de login y contraseña
 			String verificationResult = inServer.readUTF();
+
 			if ("OK".equals(verificationResult)) {
 				// Leer consulta desde la consola
 				System.out.println("Por favor, ingresa un número para la consulta:");
@@ -225,9 +231,10 @@ public class ProtocoloCliente {
 					String rta = new String(CifradoSimetrico.descifrar(llaveSimetricaParaCifrar, rtaCifradaBytes, iv));
 					System.out.println("La respuesta del servidor es: " + rta);
 				} else {
-					System.out.println("ERROR: No existe el login");
-					System.exit(0);// Terminar la conexión
+					System.out.println("ERROR");
 				}
+			} else {
+				System.out.println("ERROR: No se pudo verificar el login");
 			}
 		}
 	 }

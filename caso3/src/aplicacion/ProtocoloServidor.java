@@ -6,6 +6,8 @@ import java.io.DataOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.MessageDigest;
@@ -189,18 +191,19 @@ public class ProtocoloServidor {
 			byte[] ivBytes = Base64.getDecoder().decode(iv); 
 			IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
 
-			String rtaCifrada = Base64.getEncoder().encodeToString(CifradoSimetrico.cifrar(llaveSimetricaParaCifrar, rta, ivSpec));
-			
-			// Paso 20
-			byte[] hmacRta = generarHMAC(rta.getBytes());
-			String hmacRtaBase64 = Base64.getEncoder().encodeToString(hmacRta);
-			
-			// Enviar rta cifrada y HMAC al cliente
-			escribirAlCliente.writeUTF(rtaCifrada);
-			escribirAlCliente.writeUTF(hmacRtaBase64);
-			
-		} else {
-			escribirAlCliente.writeUTF("ERROR");
+				String rtaCifrada = Base64.getEncoder().encodeToString(CifradoSimetrico.cifrar(llaveSimetricaParaCifrar, rta, ivSpec));
+				
+				// Paso 20
+				byte[] hmacRta = generarHMAC(rta.getBytes());
+				String hmacRtaBase64 = Base64.getEncoder().encodeToString(hmacRta);
+				
+				// Enviar rta cifrada y HMAC al cliente
+				escribirAlCliente.writeUTF(rtaCifrada);
+				escribirAlCliente.writeUTF(hmacRtaBase64);
+				
+			} else {
+				escribirAlCliente.writeUTF("ERROR");
+			}
 		}
 	}		
 		
