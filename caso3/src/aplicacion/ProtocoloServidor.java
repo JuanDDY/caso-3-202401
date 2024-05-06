@@ -193,7 +193,8 @@ public class ProtocoloServidor {
 		// Paso 17 -18
 		String consulta = leerDelCliente.readUTF(); 
 		byte[] hmacConsulta = generarHMAC(consulta.getBytes());
-		escribirAlCliente.writeBytes(Base64.getEncoder().encodeToString(hmacConsulta));
+		escribirAlCliente.writeUTF(Base64.getEncoder().encodeToString(hmacConsulta));
+
 		// Paso 19
 		String rta = consulta; 
 		byte[] ivBytes = Base64.getDecoder().decode(ivTxt); 
