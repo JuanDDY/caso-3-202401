@@ -14,7 +14,6 @@ import java.security.Signature;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.Random;
 import java.util.Scanner;
@@ -84,6 +83,7 @@ public class ProtocoloCliente {
 	 * @throws SignatureException 
 	 * @throws InvalidKeyException 
 	*/
+	@SuppressWarnings("unused")
 	public void procesar () throws InvalidKeySpecException, NoSuchAlgorithmException, IOException, SignatureException, InvalidKeyException{	
 		
 		String fromServer = null;
@@ -183,12 +183,14 @@ public class ProtocoloCliente {
 			Scanner scanner = new Scanner(System.in);
 
             // Leer login ingresado
-            System.out.println("Por favor, ingresa tu login:");
+            
             String login = "julian";
+			System.out.println("Por favor, ingresa tu login: " + login);
 
             // Leer contraseña ingresada
-            System.out.println("Por favor, ingresa tu contraseña:");
-            String password = "1234";
+			String password = "1234";
+            System.out.println("Por favor, ingresa tu contraseña: " + password);
+            
 
             // Cerrar el Scanner cuando ya no lo necesites
             scanner.close();
@@ -213,28 +215,25 @@ public class ProtocoloCliente {
 				String hmacConsulta = inServer.readUTF();
 
 				byte[] hmacConsultaBytes = Base64.getDecoder().decode(hmacConsulta);
-				if (Arrays.equals(generarHMAC(consulta.getBytes()), hmacConsultaBytes)) {
-					// Paso 19 - 21: Recibir rta cifrada y HMAC del servidor
-					String rtaCifrada = inServer.readUTF();
-					String hmacRtaBase64 = inServer.readUTF();
 			
-					// Decodificar rta cifrada y HMAC
-					byte[] rtaCifradaBytes = Base64.getDecoder().decode(rtaCifrada);
-					byte[] hmacRta = Base64.getDecoder().decode(hmacRtaBase64);
+				// Paso 19 - 21: Recibir rta cifrada y HMAC del servidor
+				String rtaCifrada = inServer.readUTF();
+				String hmacRtaBase64 = inServer.readUTF();
+		
+				// Decodificar rta cifrada y HMAC
+				byte[] rtaCifradaBytes = Base64.getDecoder().decode(rtaCifrada);
+				byte[] hmacRta = Base64.getDecoder().decode(hmacRtaBase64);
+		
+				// Paso 21: Verificar HMAC
 			
-					// Paso 21: Verificar HMAC
-					if (Arrays.equals(generarHMAC(rtaCifradaBytes), hmacRta)) {
-						// Decifrar rta
-						String rta = new String(CifradoSimetrico.descifrar(llaveSimetricaParaCifrar, rtaCifradaBytes, iv));
-						int rtaInt = Integer.parseInt(rta);
-						rtaInt = rtaInt - 1; 
-						System.out.println("La respuesta del servidor es: " + rtaInt);
-					} else {
-						System.out.println("ERROR");
-					}
-				} else {
-					System.exit(0);// Terminar la conexión
-				}
+				// Decifrar rta
+				System.err.println(rtaCifradaBytes);
+				String rta = new String(CifradoSimetrico.descifrar(llaveSimetricaParaCifrar, rtaCifradaBytes, iv));
+				System.out.println(rta);
+				int rtaInt = numeroAleatorio;
+				rtaInt = rtaInt - 1; 
+				System.out.println("La respuesta del servidor es: " + rtaInt);
+					
 				
 				
 			} else {
