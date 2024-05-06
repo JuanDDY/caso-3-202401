@@ -6,6 +6,7 @@ import java.io.DataOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.MessageDigest;
@@ -186,32 +187,32 @@ public class ProtocoloServidor {
 		//Paso 15
 		if(verifyLoginAndPassword(login,password)){ 
 			escribirAlCliente.writeUTF("OK"); 
-
 			System.out.println("el cliente se verifico correctamente");
-			
-			// Paso 17 -18
-			String consulta = leerDelCliente.readUTF(); 
-			byte[] hmacConsulta = generarHMAC(consulta.getBytes());
-			escribirAlCliente.writeBytes(Base64.getEncoder().encodeToString(hmacConsulta));
-			// Paso 19
-			String rta = consulta; 
-			byte[] ivBytes = Base64.getDecoder().decode(ivTxt); 
-			IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
-
-				String rtaCifrada = Base64.getEncoder().encodeToString(CifradoSimetrico.cifrar(llaveSimetricaParaCifrar, rta, ivSpec));
-				
-				// Paso 20
-				byte[] hmacRta = generarHMAC(rta.getBytes());
-				String hmacRtaBase64 = Base64.getEncoder().encodeToString(hmacRta);
-				
-				// Enviar rta cifrada y HMAC al cliente
-				escribirAlCliente.writeUTF(rtaCifrada);
-				escribirAlCliente.writeUTF(hmacRtaBase64);
-				
-			} else {
-				escribirAlCliente.writeUTF("ERROR");
-			}
+		}else {
+			escribirAlCliente.writeUTF("ERROR");
 		}
+		// Paso 17 -18
+		String consulta = leerDelCliente.readUTF(); 
+		byte[] hmacConsulta = generarHMAC(consulta.getBytes());
+		escribirAlCliente.writeUTF(Base64.getEncoder().encodeToString(hmacConsulta));
+
+		// Paso 19
+		byte[] consultaDescifrada = CifradoSimetrico.descifrar(this.llaveSimetricaParaCifrar, Base64.getDecoder().decode(consulta), this.iv);
+		String rta = new String(consultaDescifrada, StandardCharsets.UTF_8);
+		
+		byte[] ivBytes = Base64.getDecoder().decode(ivTxt); 
+		IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
+
+		String rtaCifrada = Base64.getEncoder().encodeToString(CifradoSimetrico.cifrar(llaveSimetricaParaCifrar, rta, ivSpec));
+		
+		// Paso 20
+		byte[] hmacRta = generarHMAC(rta.getBytes());
+		String hmacRtaBase64 = Base64.getEncoder().encodeToString(hmacRta);
+		
+		// Enviar rta cifrada y HMAC al cliente
+		escribirAlCliente.writeUTF(rtaCifrada);
+		escribirAlCliente.writeUTF(hmacRtaBase64);
+	}
 		
 		
 	
