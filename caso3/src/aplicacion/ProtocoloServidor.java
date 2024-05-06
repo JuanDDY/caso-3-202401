@@ -173,10 +173,10 @@ public class ProtocoloServidor {
 		//Paso 12
 		escribirAlCliente.writeUTF("CONTINUAR");
 
-		// Paso 13 -15
+		// Paso 13 -14
 		String login = leerDelCliente.readUTF();
 		String password = leerDelCliente.readUTF();
-		
+		//Paso 15
 		if(verifyLoginAndPassword(login,password)){ 
 			escribirAlCliente.writeUTF("OK"); 
 			
@@ -184,6 +184,20 @@ public class ProtocoloServidor {
 			String consulta = leerDelCliente.readUTF(); 
 			byte[] hmacConsulta = generarHMAC(consulta.getBytes());
 			escribirAlCliente.writeBytes(Base64.getEncoder().encodeToString(hmacConsulta));
+			// Paso 19
+			String rta = consulta; 
+			byte[] ivBytes = Base64.getDecoder().decode(iv); 
+			IvParameterSpec ivSpec = new IvParameterSpec(ivBytes);
+
+			String rtaCifrada = Base64.getEncoder().encodeToString(CifradoSimetrico.cifrar(llaveSimetricaParaCifrar, rta, ivSpec));
+			
+			// Paso 20
+			byte[] hmacRta = generarHMAC(rta.getBytes());
+			String hmacRtaBase64 = Base64.getEncoder().encodeToString(hmacRta);
+			
+			// Enviar rta cifrada y HMAC al cliente
+			escribirAlCliente.writeUTF(rtaCifrada);
+			escribirAlCliente.writeUTF(hmacRtaBase64);
 			
 		} else {
 			escribirAlCliente.writeUTF("ERROR");
@@ -258,10 +272,34 @@ public class ProtocoloServidor {
 		this.llavePublicaServer = keyFactory2.generatePublic(new X509EncodedKeySpec(bytesLlavePublica));	
         
 	}
-	private boolean verifyLoginAndPassword(String login,String password){
-		//TODO: Implementa tu lógica aquí para verificar el login y la contraseña del usuario 
-		return true; // Placeholder: reemplaza con la implementación real
-	 }
+	private boolean verifyLoginAndPassword(String login, String password) {
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader(new FileReader("clientes.txt"));
+			String linea;
+	
+			while ((linea = reader.readLine()) != null) {
+				String[] partes = linea.split(" "); // Dividir la línea en login y password
+	
+				if (partes.length > 1 && partes[0].equals(login) && partes[1].equals(password)) {
+					return true; // Devolver true si se encontró el login y la contraseña
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (reader != null) {
+				try {
+					reader.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	
+		return false; // Devolver false si no se encontró el login o la contraseña
+	}
+	
 
 	
 	public void leerArchivoNumeroPrimo() {

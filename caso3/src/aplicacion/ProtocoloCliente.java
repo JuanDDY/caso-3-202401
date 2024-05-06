@@ -1,8 +1,10 @@
 package aplicacion;
 
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
@@ -177,24 +179,33 @@ public class ProtocoloCliente {
 			throw new SignatureException("Se deberia haber pasado \"CONTINUAR\""); //El cliente se detiene si el los numero recibidos no son consistentes con la firma 
 		}
 		if ("CONTINUAR".equals(fromServer)) {
-			// Convertir los bytes cifrados a String para enviar
-			String loginCifrado = Base64.getEncoder().encodeToString(CifradoSimetrico.cifrar(llaveSimetricaParaCifrar, "login", iv));
-			String passwordCifrado = Base64.getEncoder().encodeToString(CifradoSimetrico.cifrar(llaveSimetricaParaCifrar, "password", iv));
+			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+			// Leer login y password ingresado
+			System.out.println("Por favor, ingresa tu login:");
+			String login = reader.readLine();
+
+			System.out.println("Por favor, ingresa tu contraseña:");
+			String password = reader.readLine();
+	 
+			// Cifrar y enviar login y password
+			outServer.writeUTF(Base64.getEncoder().encodeToString(CifradoSimetrico.cifrar(llaveSimetricaParaCifrar, login, iv)));
+			outServer.writeUTF(Base64.getEncoder().encodeToString(CifradoSimetrico.cifrar(llaveSimetricaParaCifrar, password, iv)));
 			
-			outServer.writeUTF(loginCifrado); // Enviar login cifrado
-			outServer.writeUTF(passwordCifrado); // Enviar contraseña cifrada
-			
-			// Recibir verificación de login y contraseña
+			// Paso 16: Recibir verificación de login y contraseña
 			String verificationResult = inServer.readUTF();
 			if ("OK".equals(verificationResult)) {
-				// Convertir los bytes cifrados a String para enviar
-				String consultaCifrada = Base64.getEncoder().encodeToString(CifradoSimetrico.cifrar(llaveSimetricaParaCifrar, "consulta", iv));
-				outServer.writeUTF(consultaCifrada); // Enviar consulta cifrada
+				// Leer consulta desde la consola
+				System.out.println("Por favor, ingresa un número para la consulta:");
+				@SuppressWarnings("deprecation")
+				String consulta = inConsola.readLine();
+	 
+				// Cifrar y enviar consulta
+				outServer.writeUTF(Base64.getEncoder().encodeToString(CifradoSimetrico.cifrar(llaveSimetricaParaCifrar, consulta, iv)));
 				
 				// Recibir HMAC de consulta y verificar
 				String hmacConsulta = inServer.readUTF();
 				byte[] hmacConsultaBytes = Base64.getDecoder().decode(hmacConsulta);
-				if (Arrays.equals(generarHMAC("consulta".getBytes()), hmacConsultaBytes)) {
+				if (Arrays.equals(generarHMAC(consulta.getBytes()), hmacConsultaBytes)) {
 					// Continuar con la comunicación
 				} else {
 					// Terminar la conexión
@@ -246,7 +257,6 @@ public class ProtocoloCliente {
 		isValid = signature2.verify(listaBytes); 					
 		return isValid;		
 	}
-
 	
 	
 	public void detener() {

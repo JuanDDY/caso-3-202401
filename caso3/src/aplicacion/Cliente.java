@@ -37,7 +37,7 @@ public class Cliente {
 		} 
 						
 		DataInputStream inConsola = new DataInputStream(System.in);       
-    
+
         ProtocoloCliente protocoloCliente = new ProtocoloCliente(inConsola, inServer, outServer);
         protocoloCliente.procesar();
         
@@ -46,8 +46,7 @@ public class Cliente {
         inServer.close();
         outServer.close();
         socket.close(); 		// Cerrar la conexión con el servidor
-		
-	}	
+    }	
 
 	
 
