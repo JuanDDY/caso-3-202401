@@ -84,7 +84,6 @@ public class ProtocoloCliente {
 	 * @throws SignatureException 
 	 * @throws InvalidKeyException 
 	*/
-	@SuppressWarnings("deprecation")
 	public void procesar () throws InvalidKeySpecException, NoSuchAlgorithmException, IOException, SignatureException, InvalidKeyException{	
 		
 		String fromServer = null;
@@ -185,11 +184,11 @@ public class ProtocoloCliente {
 
             // Leer login ingresado
             System.out.println("Por favor, ingresa tu login:");
-            String login = scanner.nextLine();
+            String login = "julian";
 
             // Leer contraseña ingresada
             System.out.println("Por favor, ingresa tu contraseña:");
-            String password = scanner.nextLine();
+            String password = "1234";
 
             // Cerrar el Scanner cuando ya no lo necesites
             scanner.close();
@@ -212,6 +211,7 @@ public class ProtocoloCliente {
 				
 				// Recibir HMAC de consulta y verificar
 				String hmacConsulta = inServer.readUTF();
+
 				byte[] hmacConsultaBytes = Base64.getDecoder().decode(hmacConsulta);
 				if (Arrays.equals(generarHMAC(consulta.getBytes()), hmacConsultaBytes)) {
 					// Paso 19 - 21: Recibir rta cifrada y HMAC del servidor
